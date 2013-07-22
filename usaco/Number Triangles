@@ -1,0 +1,46 @@
+/*
+ID: paul.ra1
+PROG: numtri
+LANG: C++
+*/
+
+#include <iostream>
+#include <fstream>
+#include <vector>
+
+using namespace std;
+
+int main(int argc, char** argv) {
+	ifstream fin("numtri.in");
+	ofstream fout("numtri.out");
+	
+	vector<vector<int> > tri;
+	int r;
+	fin >> r;
+
+	int t;
+	for (int i = 1; i <= r; ++i) {
+		vector<int> tmp;
+		for (int j = 0; j < i; ++j) {
+			fin >> t;
+			tmp.push_back(t);
+		}
+		tri.push_back(tmp);
+	}
+
+	for (int row = r - 2; row >= 0; --row) {
+		for (int col = 0; col < row + 1; ++col) {
+			int left = tri[row + 1][col];
+			int right = tri[row + 1][col + 1];
+			if (left > right) {
+				tri[row][col] += left;
+			} else {
+				tri[row][col] += right;
+			}
+		}
+	}
+	
+	fout << tri[0][0] << endl;
+
+	return 0;
+}

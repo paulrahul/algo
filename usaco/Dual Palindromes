@@ -1,0 +1,68 @@
+/*
+ID: paul.ra1
+LANG: C++
+TASK: dualpal
+*/
+
+#include <iostream>
+#include <cstring>
+#include <fstream>
+
+using namespace std;
+
+bool isPalindrome(char str[]) {
+	int len = strlen(str);
+	for (int i = 0; i < len / 2; ++i) {
+		if (str[i] != str[len - 1 - i]) return false;
+	}
+	return true;
+}
+
+void numconv(int n, int b, char str[]) {
+	if (n == 0) {
+		str[0] = '\0';
+		return;
+	}
+
+	numconv(n / b, b, str);
+	int len = strlen(str);
+	str[len] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"[n % b];
+	str[len + 1] = '\0';
+}
+
+bool isDualPal(int n) {
+	char str[500];
+	int num_pal = 0;
+
+	for (int b = 2; b <= 10; ++b) {
+		numconv(n, b, str);
+		if (isPalindrome(str)) {
+			num_pal++;
+			
+			if (num_pal >= 2) {
+				return true;
+			}
+		}
+	}
+	
+	return false;
+}
+
+int main(int argc, char** argv) {
+	ifstream fin("dualpal.in");
+	ofstream fout("dualpal.out");
+	int n, s;
+	fin >> n >> s;
+	
+	s++;
+	while (1) {
+		if (isDualPal(s)) {
+			fout << s << endl;
+			n--;
+			if (!n) break;
+		}
+		s++;
+	}
+
+	return 0;
+}

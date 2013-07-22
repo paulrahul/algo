@@ -1,0 +1,143 @@
+/*
+ID: paul.ra1
+PROG: castle
+LANG: C++
+*/
+
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+int m, n;
+vector<vector<int> > components;
+int comp_map[2500];
+
+void dfs(int matrix[][50], bool visited[][50],
+		 int r, int c, vector<int>& tmp) {
+	tmp.push_back(r * m + c);
+	comp_map[r * m + c] = components.size();
+	visited[r][c] = true;
+
+	int room = matrix[r][c];
+	
+//	cout << "Adding" << r << " " << c << endl;
+	// West
+	if (c > 0 && !(room & 1) && !visited[r][c - 1]) {
+		dfs(matrix, visited, r, c - 1, tmp);
+	}
+
+	// North
+	if (r > 0 && !(room & 2) && !visited[r - 1][c]) {
+		dfs(matrix, visited, r - 1, c, tmp);
+	}
+	
+	// East
+	if (c < m - 1 && !(room & 4) && !visited[r][c + 1]) {
+		dfs(matrix, visited, r, c + 1, tmp);
+	}
+	
+	// South
+	if (r < n - 1 && !(room & 8) && !visited[r + 1][c]) {
+		dfs(matrix, visited, r + 1, c, tmp);
+	}
+}
+
+void dfs_main(int matrix[][50]) {
+	bool visited[50][50];
+
+	for (int i = 0; i < n; ++i) {
+		for (int j = 0; j < m; ++j) {
+			visited[i][j] = false;
+		}
+	}
+	
+	for (int i = 0; i < n; ++i) {
+		for (int j = 0; j < m; ++j) {
+			if (visited[i][j]) continue;
+			
+			vector<int> tmp;
+//			cout << "Visiting " << i << " " << j << endl;
+			dfs(matrix, visited, i, j, tmp);
+			components.push_back(tmp);
+		}		
+	}
+}
+
+struct wall {
+	wall(int r, int c, int position, int max_val) {
+		this->r = r;
+		this->c = c;
+		this->position = position;
+		this->max_val = max_val;
+	}
+
+	int r;
+	int c;
+	int position;  // 0 - west, 1 - south
+	int max_val;
+};
+
+bool compare_wall(const wall& a, const wall& b) {
+	if (a.max_val != b.max_val) return (a.max_val > b.max_val);
+	if (a.c != b.c) return (a.c < b.c);
+	if (a.r != b.r) return (a.r > b.r);
+	return (a.position == 1);
+}
+
+int main(int argc, char** argv) {
+	ifstream fin("castle.in");
+	ofstream fout("castle.out");
+	
+	fin >> m >> n;
+
+	int matrix[50][50];
+	for (int i = 0; i < n; ++i) {
+		for (int j = 0; j < m; ++j) {
+			fin >> matrix[i][j];
+		}
+	}
+	
+	dfs_main(matrix);
+	
+	int len = components.size();
+	fout << len << endl;
+	
+	int max_room = 0;
+	int max_poss_room = 0;
+	vector<wall> max_wall;
+	len = m * n;
+	for (int i = 0; i < len; ++i) {
+		int s = components[comp_map[i]].size();
+		max_room = max(max_room, s);
+		if (i != len - 1 && !((i % m) == m - 1) &&
+			(comp_map[i] != comp_map[i + 1])) {
+			int mpr = components[comp_map[i]].size() + 
+					  components[comp_map[i + 1]].size();
+			if (mpr >= max_poss_room) {
+				max_poss_room = mpr;
+				max_wall.push_back(wall(i / m, i % m, 0, mpr));
+			}
+		}
+
+		if (i + m < len && /*!((i + m) / m == n - 1) && */
+			(comp_map[i] != comp_map[i + m])) {
+			int mpr = components[comp_map[i]].size() + 
+					  components[comp_map[i + m]].size();
+			if (mpr >= max_poss_room) {
+				max_poss_room = mpr;
+				max_wall.push_back(wall((i + m) / m, (i + m) % m, 1, mpr));
+			}
+		}
+	}
+	
+	fout << max_room << endl;
+	fout << max_poss_room << endl;
+	
+	sort(max_wall.begin(), max_wall.end(), &compare_wall);
+	char dir[] = "EN";
+	fout << max_wall[0].r + 1 << " " << max_wall[0].c + 1 << " " << dir[max_wall[0].position] << endl;
+	return 0;
+}

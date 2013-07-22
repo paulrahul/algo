@@ -1,0 +1,71 @@
+/*
+ID: paul.ra1
+LANG: C++
+TASK: palsquare
+*/
+
+#include <iostream>
+#include <fstream>
+
+using namespace std;
+
+bool isPalindrome(char str[], int len) {
+	for (int i = 0; i < len; ++i) {
+		if (str[i] != str[len - 1 - i]) return false;
+	}
+	return true;
+}
+
+void convertToB(int n, int b, char str[], int* len) {
+	*len = 0;
+	int r;
+	char ch;
+	while (n) {
+		r = n % b;
+		ch = (r > 9) ? (char)('A' + (r - 10)) : (char)('0' + r);
+		str[(*len)++] = ch;
+		n /= b;
+	}
+	
+	// reverse
+	for (int i = 0; i < *len / 2; ++i) {
+		char tmp = str[i];
+		str[i] = str[*len - 1 - i];
+		str[*len - 1 - i] = tmp;
+	}
+}
+
+bool isSquarePalindrome(int n, int b, string* num, string* square) {
+	int sq = n * n;
+
+	char str[100];
+	int len;
+	convertToB(sq, b, str, &len); 
+	
+	if (isPalindrome(str, len)) {
+		str[len] = '\0';
+		*square = string(str);
+		convertToB(n, b, str, &len);
+		str[len] = '\0';
+		*num = string(str);
+		return true;
+	}
+	
+	return false;
+}
+
+int main(int argc, char** argv) {
+	ifstream fin("palsquare.in");
+	ofstream fout("palsquare.out");
+	int b;
+	fin >> b;
+
+	string num, square;
+	for (int i = 1; i <= 300; ++i) {
+		if (isSquarePalindrome(i, b, &num, &square)) {
+			fout << num << " " << square << endl;
+		}
+	}
+	
+	return 0;
+}

@@ -1,0 +1,93 @@
+/*
+ID: paul.ra1
+PROG: holstein
+LANG: C++
+*/
+
+
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <algorithm>
+#include <cmath>
+
+using namespace std;
+
+bool check_ans(const vector<int>& tmp_ans, const vector<int>& ans) {
+	if (ans.size() == 0 || ans.size() > tmp_ans.size()) {
+		return true;
+	}
+	
+	if (ans.size() < tmp_ans.size()) return false;
+	
+	// so tmp has equal number of steps as ans. Check if
+	// tmp has lesser elements.
+	for (int i = 0; i < tmp_ans.size(); ++i) {
+		if (tmp_ans[i] > ans[i]) {
+			return false;
+		}
+	}
+	
+	return true;
+}
+
+int main(int argc, char** argv) {
+	ifstream fin("holstein.in");
+	ofstream fout("holstein.out");
+	
+	int v;
+	fin >> v;
+	vector<int> needed(v, 0);
+	for (int i = 0; i < v; ++i) fin >> needed[i];
+	
+	int g;
+	fin >> g;
+	int feeds[g + 1][v];
+	for (int i = 1; i <= g; ++i) {
+		for (int j = 0; j < v; ++j) {
+			fin >> feeds[i][j];
+		}
+	}
+
+	int nc = pow(2, g);
+	vector<int> min_feeds;
+	for (int c = 1; c < nc; ++c) {
+		// find the bit positions and add feed corresponding to that.
+		int curr = c;
+		int n_added = 0;
+		vector<int> tmp_needed(needed.begin(), needed.end());
+		bool still_needed = false;
+		vector<int> tmp_ans;
+
+		for (int i = 1; curr > 0; curr >>= 1, ++i) {
+			if (!(curr & 1)) {
+				continue;
+			}		
+			
+			still_needed = false;
+			for (int j = 0; j < v; ++j) {
+				tmp_needed[j] -= feeds[i][j];
+				if (tmp_needed[j] > 0) still_needed = true;
+			}
+			tmp_ans.push_back(i);
+			n_added++;
+			if (n_added == min_feeds.size()) break;
+			if (!still_needed) break;
+		}
+		
+		if (!still_needed) {
+			// compare with previous ans.
+			sort(tmp_ans.begin(), tmp_ans.end());
+			if (check_ans(tmp_ans, min_feeds)) {
+				min_feeds.clear();
+				min_feeds.assign(tmp_ans.begin(), tmp_ans.end());
+			}
+		}
+	}
+	
+	fout << min_feeds.size() << " ";
+	for (int i = 0; i < min_feeds.size() - 1; ++i) fout << min_feeds[i] << " ";
+	fout << min_feeds[min_feeds.size() - 1] << endl;
+	
+	return 0;
+}

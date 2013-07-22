@@ -1,0 +1,88 @@
+/*
+ID: paul.ra1
+PROG: milk3
+LANG: C++
+*/
+
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <set>
+#include <algorithm>
+#include <cassert>
+#include <string>
+#include <sstream>
+
+using namespace std;
+
+set<string> used;
+set<int> ans;
+int w[3];
+
+string int2string(int n) {
+	ostringstream ss;
+	ss << n;
+	return ss.str() + ",";
+}
+
+void process(vector<int> curr, int s, int t) {
+	assert(s >= 0 && s <= 3);
+	assert(t >= 0 && t <= 3);
+	
+	int to_fill = w[t] - curr[t];
+	int avail = curr[s];
+	
+	if (to_fill == 0 || avail == 0) return;
+	
+	if (avail < to_fill) {
+		curr[t] += avail;
+		curr[s] = 0;
+	} else {
+		curr[t] = w[t];
+		curr[s] -= to_fill;
+	}
+	
+	string key = int2string(curr[0]) + int2string(curr[1]) + int2string(curr[2]);
+	if (used.find(key) != used.end()) {
+		return;  // already visited.
+	}
+	used.insert(key);
+	
+	if (curr[0] == 0) {
+		ans.insert(curr[2]);
+	}
+
+	for (int i = 0; i < 3; ++i) {
+		for (int j = 0; j < 3; ++j) {
+			if (i == j) continue; // s == t
+			if (i == t && j == s) continue;  // reverse
+			process(curr, i, j);
+		}
+	}
+
+}
+
+int main(int argc, char** argv) {
+	ifstream fin("milk3.in");
+	ofstream fout("milk3.out");
+
+	fin >> w[0] >> w[1] >> w[2];
+	
+	vector<int> curr(3, 0);
+	curr[2] = w[2];
+	
+	ans.insert(curr[2]);
+	used.insert("00" + int2string(curr[2]));
+	
+	process(curr, 2, 0);
+	process(curr, 2, 1);
+	
+	vector<int> answers(ans.begin(), ans.end());
+	sort(answers.begin(), answers.end());
+	for (int i = 0; i < answers.size() - 1; ++i) {
+		fout << answers[i] << " ";
+	}
+	fout << answers[answers.size() - 1] << endl;
+	
+	return 0;
+}

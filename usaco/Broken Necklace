@@ -1,0 +1,59 @@
+/*
+ID: paul.ra1
+LANG: C++
+TASK: beads
+*/
+
+#include <iostream>
+#include <fstream>
+#include <vector>
+
+using namespace std;
+
+
+int sum(string beads, int mid, int len) {
+	int l = (mid > 0) ? mid - 1 : len - 1;
+	char ch = beads[l];
+	int sum = 0;
+	while (l != mid && (ch == 'w' || beads[l] == ch || beads[l] == 'w') ) {
+		if (ch == 'w' && beads[l] != 'w') ch = beads[l];
+		sum++;
+		if (l == 0) l = len;
+		l--;
+	}
+	
+	int r = mid;
+	ch = beads[r];
+	while (ch == 'w' || beads[r] == ch || beads[r] == 'w') {
+		if (ch == 'w' && beads[r] != 'w') ch = beads[r];
+		sum++;
+		if (r == l) break;
+		r = (r + 1) % len;
+	}
+	
+	return sum;
+}
+
+int main(int argc, char** argv) {
+	ifstream fin("beads.in");
+	ofstream fout("beads.out");
+
+	int n;
+	string beads;
+	
+	fin >> n;
+	fin >> beads;
+
+	int max = -999;
+	int s;
+	for (int i = 0; i < n; ++i) {
+		s = sum(beads, i, n);
+
+		if (s > max) {
+			max = s;
+		}
+	}
+	
+	fout << max << endl;
+	return 0;
+}	

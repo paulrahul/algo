@@ -1,0 +1,117 @@
+/*
+ID: paul.ra1
+PROG: calfflac
+LANG: C++
+*/
+
+#include <iostream>
+#include <fstream>
+
+using namespace std;
+
+bool isPal(string& str, int* left, int* right, int* plen) {
+	int len = str.length();
+	bool is_alpha_a, is_alpha_b = true;
+	int alpha_a, alpha_b;
+	int l = *left; int r = *right;
+	*plen = 0;
+	while (l >= 0 && r < len) {
+		is_alpha_a = true;
+		if (str[l] >= 'a' && str[l] <= 'z') {
+			alpha_a = str[l] - 'a';
+		} else if (str[l] >= 'A' && str[l] <= 'Z') {
+			alpha_a = str[l] - 'A';
+		} else {
+			is_alpha_a = false;
+			l--;
+		} 
+
+		is_alpha_b = true;
+		if (str[r] >= 'a' && str[r] <= 'z') {
+			alpha_b = str[r] - 'a';
+		} else if (str[r] >= 'A' && str[r] <= 'Z') {
+			alpha_b = str[r] - 'A';
+		} else {
+			is_alpha_b = false;
+			r++;
+		} 
+		
+		if (is_alpha_a && is_alpha_b) {
+			if (alpha_a == alpha_b) {
+				*left = l; *right = r; *plen += 2;
+				l--; r++;
+			} else {
+				break;
+			}
+		}
+	}
+	
+	return (*plen > 0);
+}
+
+int main(int argc, char** argv) {
+	ifstream fin("calfflac.in");
+	ofstream fout("calfflac.out");
+
+	string str;
+	string tmp;
+	while (getline(fin, tmp)) {
+		if (str.length() > 0) str += '\n';
+		str += tmp;
+	}
+	
+	// brute force
+/*	char arr[20000];
+	int len = str.length();
+	int j = 0;
+	for (int i = 0; i < len; ++i) {
+		if (str[i] >= 'a' && str[i] <= 'z') {
+			arr[j++] = str[i];
+		} else if(str[i] >= 'A' && str[i] <= 'Z') {
+			arr[j++] = (char)('a' + (str[i] - 'A'));
+		}
+	} */
+	
+	int len = str.length();
+	int i = 0;
+	int max = 0;
+	int maxstart = -1;
+	int maxend = -1;
+	int plen, l, r;
+	while (i < len - 1) {
+		// even case
+		l = i;
+		r = i + 1;
+		i++;
+		plen = 0;
+		if (isPal(str, &l, &r, &plen)) {
+			if (plen > max) {
+				// fout << i << " " << max << endl;
+				max = plen;
+				maxstart = l;
+				maxend = r;
+			}
+		}
+		
+		if (i == 0) continue;
+		// odd case
+		l = l - 1;
+		plen = 0;
+		if (isPal(str, &l, &r, &plen)) {
+			if (plen > max) {
+				// fout << i << " " << max << endl;
+				max = ((str[l+1] >= 'a' && str[l+1] <= 'z') || (str[l+1] >= 'A' && str[l+1] <= 'Z'))
+					? plen + 1: plen;
+				maxstart = l;
+				maxend = r;
+			}
+		}
+	}
+	
+	if (max > 0) {
+		fout << max << endl;
+		fout << str.substr(maxstart, (maxend - maxstart + 1)) << endl;
+	}
+	
+	return 0;
+}

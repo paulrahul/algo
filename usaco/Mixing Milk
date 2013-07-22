@@ -1,0 +1,55 @@
+/*
+ID: paul.ra1
+PROG: milk
+LANG: C++
+*/
+
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+struct Farmer {
+	Farmer(int p, int a) {
+		this->p = p;
+		this->a = a;
+	}
+	int p;
+	int a;
+};
+
+bool compare_f(Farmer a, Farmer b) {
+	return a.p < b.p;
+}
+
+int main(int argc, char** argv) {
+	ifstream fin("milk.in");
+	ofstream fout("milk.out");
+	
+	int n, m;
+	fin >> n >> m;
+	vector<Farmer> farmers;
+	int p, a;
+	for (int i = 0; i < m; ++i) {
+		fin >> p >> a;
+		Farmer f(p, a);
+		farmers.push_back(f);
+	}
+	
+	sort(farmers.begin(), farmers.end(), compare_f);
+	
+	long sum = 0;
+	int i = 0;
+	while (n && i < m) {
+		int taken = (n >= farmers[i].a) ? farmers[i].a : n;
+		sum += (long) (taken * farmers[i].p);
+		n -= taken;
+		i++;
+	}
+	
+	fout << sum << endl;
+	
+	return 0;
+}

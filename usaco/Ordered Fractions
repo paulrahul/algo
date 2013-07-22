@@ -1,0 +1,71 @@
+/*
+ID: paul.ra1
+PROG: frac1
+LANG: C++
+*/
+
+#include <iostream>
+#include <fstream>
+#include <utility>
+#include <algorithm>
+#include <vector>
+#include <set>
+
+using namespace std;
+
+int gcd(int a, int b) {
+	if (a < b) {
+		a = a + b;
+		b = a - b;
+		a = a - b;
+	}
+
+	while (b) {
+		int t = b;
+		b = a % b;
+		a = t;
+	}
+	
+	return a;
+}
+
+bool compare_f(int a, int b) {
+	double f1 = ((double)(a / 1000)) / (a % 1000);
+	double f2 = ((double)(b / 1000)) / (b % 1000);
+
+	return (f1 < f2);
+}
+
+int main(int argc, char** argv) {
+	ifstream fin("frac1.in");
+	ofstream fout("frac1.out");
+	
+	int n;
+	fin >> n;
+
+	set<int> ans_set;
+	ans_set.insert(1);
+	ans_set.insert(1001);	
+
+	int g, num, den;
+	for (int i = 2; i <= n; ++i) {
+		for (int j = 1; j < i; ++j) {
+			g = gcd(i, j);
+			num = j / g;
+			den = i / g;
+			ans_set.insert(1000 * num  + den);
+			//cout << "Inserting " << 1000 * num  + den << endl;
+		}
+	}
+	
+	vector<int> ans(ans_set.begin(), ans_set.end());
+	sort(ans.begin(), ans.end(), &compare_f);
+
+	int len = ans.size();
+	for (int i = 0; i < len; ++i) {
+		num = ans[i];
+		fout << num / 1000 << "/" << num % 1000 << endl;
+	}
+
+	return 0;
+}

@@ -1,0 +1,140 @@
+/*
+ID: paul.ra1
+PROG: pprime
+LANG: C++
+*/
+
+#include <iostream>
+#include <fstream>
+#include <cmath>
+#include <cassert>
+
+using namespace std;
+
+void conv_arr(int num, int nd, int digits[]) {
+	nd--;
+	while (num > 0 && nd >= 0) {
+		digits[nd--] = num % 10;
+		num /= 10;
+	}
+
+	assert(num == 0 && nd == -1);
+}
+
+int conv_num(int digits[], int nd) {
+	int num = 0;
+
+	for (int i = 0; i < nd; ++i) {
+		num = num * 10 + digits[i];
+	}
+	return num;
+}
+
+bool all9(int num) {
+	while (num > 0) {
+		int d = num % 10;
+		if (d != 9) return false;
+		num /= 10;
+	}
+	return true;
+}
+
+int next_pal(int num) {
+	if (all9(num)) {
+		return (num + 2);
+	}
+	num++;
+
+	int nd = ceil(log10(num));
+	bool ndodd = (nd & 1);
+	int digits[10];
+	conv_arr(num, nd, digits);
+
+	bool left_higher = true;
+	int i = nd / 2 - 1;
+	int j = nd / 2;
+	if (ndodd) j++;
+
+	while (i >= 0 && j < nd && 
+		   digits[i] == digits[j]) {
+		--i; ++j;
+	}
+
+	if (i < 0 && j >= nd) {
+		// already palindrome
+		return conv_num(digits, nd);
+	}
+	
+	if (digits[i] < digits[j]) {
+		left_higher = false; // needs increment
+	}
+
+	if (!left_higher) {
+		// increase mid most digit
+		bool increased = false;
+		int mid = (ndodd) ? (nd / 2) : nd / 2 - 1;
+		while (!increased && mid >= 0) {
+			if (digits[mid] == 9) {
+				digits[mid] = 0;
+			} else {
+				digits[mid] += 1;
+			}
+			digits[nd - 1 - mid] = digits[mid];
+			if (digits[mid] != 0) {
+				increased = true;
+			}
+			--mid;
+		}
+		i = mid;
+		j = nd - 1 - mid;
+	} else {
+		// copy left digit
+		digits[j] = digits[i];
+		--i; ++j;
+	}
+
+	// copy the rest of digits from left to right.
+	while (i >= 0 && j < nd) {
+		digits[j] = digits[i];
+		--i; ++j;
+	}
+
+	return conv_num(digits, nd);
+}
+
+bool isPrime(int num) {
+	if (num < 2) return false;
+	if (num == 2 || num == 3) return true;
+	if (num % 2 == 0 || num % 3 == 0) return false;
+	int root = pow(num, 0.5) + 1;
+	for (int i = 6; i <= root; i += 6) {
+		if (num % (i - 1) == 0 || num % (i + 1) == 0) {
+			return false;
+		}
+	}
+	
+	return true;
+}
+
+int main(int argc, char** argv) {
+	ifstream fin("pprime.in");
+	ofstream fout("pprime.out");
+
+	int a, b;
+	fin >> a >> b;
+	a--;
+	int pal;
+	while ( (pal = next_pal(a)) <= b) {
+		if (isPrime(pal)) {
+			fout << pal << endl;
+		}
+		a = pal;
+	} 
+/*	
+	cout << "enter: ";
+	int n;
+	cin >> n;
+	cout << next_pal(n) << endl;
+*/	
+	return 0;
+}

@@ -1,0 +1,96 @@
+/*
+ID: paul.ra1
+PROG: ariprog
+LANG: C++
+*/
+
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <algorithm>
+#include <set>
+
+using namespace std;
+
+struct ans {
+	ans(int a, int b) {
+		this->a = a;
+		this->b = b;
+	}
+
+	int a;
+	int b;
+};
+
+bool compare_ans(ans x, ans y) {
+	if (x.b != y.b) {
+		return (x.b < y.b);
+	}
+	
+	return (x.a < y.a);
+}
+
+int main(int argc, char** argv) {
+	ifstream fin("ariprog.in");
+	ofstream fout("ariprog.out");
+
+	int n, m;
+	fin >> n >> m;
+
+	bool bsq[200000];	
+	int bs;
+	set<int> bset;
+	for (int i = 0; i <= m; ++i) {
+		for (int j = i; j <= m; ++j) {
+			bs = i*i + j*j;
+			bsq[bs] = true;
+			bset.insert(bs);
+			//cout << bs << " ";
+		}
+		//cout << endl;
+	}
+	
+	vector<int> bsquares(bset.begin(), bset.end());
+	sort(bsquares.begin(), bsquares.end());
+	
+	vector<ans> answers;
+	int len = bsquares.size();
+	int max = bsquares[len - 1];
+	for (int i = 0; i < len - n; ++i) {
+		int a = bsquares[i];
+		
+		for (int j = i + 1; j < len; ++j) {
+			int c = bsquares[j];
+			int b = c - a;
+			
+			// check if nth number is present.
+			int last = a + ((n - 1) * b);
+			if (last >= 200000 || !bsq[last]) {
+				//cout << a << " " << b << endl;
+				continue;
+			}
+			
+			int cnt = 1;
+			while (c <= max && bsq[c] == true) {
+				cnt++;
+				if (cnt == n) {
+					answers.push_back(ans(a, b));
+					break;
+				}
+				c = c + b;
+			}		
+		}
+	}
+	
+	sort(answers.begin(), answers.end(), &compare_ans);
+
+	if (answers.size() == 0) {
+		fout << "NONE" << endl;
+	} else {
+		for (int i = 0; i < answers.size(); ++i) {
+			fout << answers[i].a << " " << answers[i].b << endl;
+		}
+	}
+	
+	return 0;
+}

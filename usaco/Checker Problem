@@ -1,0 +1,118 @@
+/*
+ID: paul.ra1
+PROG: checker
+LANG: C++
+*/
+
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <algorithm>
+#include <cassert>
+
+using namespace std;
+
+bool rows[20];
+bool cols[20];
+bool ldiag[50];
+bool rdiag[50];
+int N;
+int nsol = 0;
+
+struct solution {
+	int ind[20];
+};
+
+bool compare_soln(solution a, solution b) {
+	for (int i = 0; i < N; ++i) {
+		if (a.ind[i] != b.ind[i]) {
+			return (a.ind[i] < b.ind[i]);
+		}
+	}
+	
+	return 0;
+}
+
+vector<solution> soln;
+int tmp[15];
+
+
+void checkEntry(const solution& s) {
+	if (soln.size() == 3) {
+		// compare with the last 
+		for (int i = 0; i < N; ++i) {
+			if (tmp[i] > soln[2].ind[i]) {
+				return;
+			}
+		}
+		soln.pop_back();
+	}
+
+	soln.push_back(s);
+	sort(soln.begin(), soln.end(), &compare_soln);
+}
+
+bool diag_valid(int r, int c) {
+	// Now check the diagonals for r, c
+	int nd = 2*N - 1;
+	
+	int rd = r + c;
+	if (rdiag[rd]) return false;
+	
+	int ld = (r < c) ? (nd / 2 + (c - r)) : (nd / 2 - (r - c));
+	if (ldiag[ld]) return false;
+	
+	rows[r] = cols[c] = ldiag[ld] = rdiag[rd] = true;
+	return true;
+}
+
+void reset(int r, int c) {
+	int nd = 2*N - 1;
+	int rd = r + c;
+	int ld = (r < c) ? (nd / 2 + (c - r)) : (nd / 2 - (r - c));
+	
+	rows[r] = cols[c] = ldiag[ld] = rdiag[rd] = false;
+}
+
+void getNextC(int r) {
+	if (r == N) {
+		++nsol;
+		
+		solution s;
+		for (int i = 0; i < N; ++i) {
+			s.ind[i] = tmp[i];
+		}
+		checkEntry(s);
+		return;
+	}
+
+	for (int c = 0; c < N; ++c) {
+		if (cols[c]) continue;
+
+		if (!diag_valid(r, c)) continue;
+		
+		// Valid
+		tmp[r] = c + 1;
+		getNextC(r + 1);
+		reset(r, c);
+	}
+}
+
+int main(int argc, char** argv) {
+	ifstream fin("checker.in");
+	ofstream fout("checker.out");
+	
+	fin >> N;
+	getNextC(0);
+	
+	for (int i = 0; i < 3 && i < soln.size(); ++i) {
+		for (int j = 0; j < N - 1; ++j) {
+			fout << soln[i].ind[j] << " ";
+		}
+		fout << soln[i].ind[N - 1] << endl;
+	}
+	
+	fout << nsol << endl;
+
+	return 0;
+}

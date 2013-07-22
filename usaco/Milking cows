@@ -1,0 +1,78 @@
+/*
+ID: paul.ra1
+LANG: C++
+TASK: milk2
+*/
+
+#include <iostream>
+#include <algorithm>
+#include <fstream>
+#include <vector>
+
+using namespace std;
+
+struct point {
+	int t;
+	char type;
+};
+
+bool compare_point(const point& a, const point& b) {
+	if (a.t == b.t) return (a.type == 'o');
+	return (a.t < b.t);
+}
+
+int main(int argc, char** argv) {
+	ifstream fin("milk2.in");
+	ofstream fout("milk2.out");
+
+	int n;
+	fin >> n;
+
+	vector<point> points;
+	int s, e;
+	for (int i = 0; i < n; ++i) {
+		fin >> s >> e;
+		point p1;
+		p1.t  = s;
+		p1.type = 'o';
+		point p2;
+		p2.t  = e;
+		p2.type = 'c';
+		points.push_back(p1);
+		points.push_back(p2);
+	}
+	
+	// sort points based on t
+	sort(points.begin(), points.end(), compare_point);
+	
+	int max_open = 0;
+	int max_close = 0;
+	int o, c;
+	int oc = 0;
+	c = 0;
+	int len = points.size();
+	
+	for (int i = 0; i < len; ++i) {
+		if (points[i].type == 'o') {
+			oc++;
+			if (oc == 1) {
+				o = points[i].t;
+				if (i != 0) {
+					int ct = points[i].t - c;
+					if (ct > max_close) max_close = ct;
+				}
+			}
+		} else {
+			oc--;
+			if (oc == 0) {
+				c = points[i].t;
+				int ot = points[i].t - o;
+				if (ot > max_open) max_open = ot;
+			}		
+		}
+	}
+
+	fout << max_open << " " << max_close << endl;
+
+	return 0;
+}

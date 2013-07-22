@@ -1,0 +1,134 @@
+/*
+ID: paul.ra1
+LANG: C++
+TASK: transform
+*/
+
+#include <iostream>
+#include <fstream>
+
+using namespace std;
+
+void output(char arr[10][10], int n) {
+	for (int i = 0; i < n; ++i) {
+		for (int j = 0; j < n; ++j) {
+			cout << arr[i][j] << " ";
+		}
+		cout << endl;
+	}
+	cout << endl;
+}
+
+void rotate90(char arr[10][10], int n) {
+	for (int ro = 0; ro < n / 2; ++ro) {
+		for (int i = 0; i < n - 2 * ro - 1; ++i) {
+			int co = ro + i;
+			
+			int r = co;
+			int c = n - 1 - ro;
+			char out = arr[r][c];
+			arr[r][c] = arr[ro][co];
+			
+			char in = out;
+			int oldr = r;
+			int oldc = c;
+			r = n - 1 - (n - 1 - oldc);
+			c = n - 1 - oldr;
+			out = arr[r][c];
+			arr[r][c] = in;
+			
+			in = out;
+			oldr = r;
+			oldc = c;
+			r = n - 1 - (n - 1 - oldc);
+			c = n - 1 - oldr;
+			out = arr[r][c];
+			arr[r][c] = in;
+			
+			in = out;
+			arr[ro][co] = in;
+		}
+	}
+	
+	//output(arr, n);
+}
+
+void reflect(char arr[10][10], int n) {
+	for (int i = 0; i < n / 2; ++i) {
+		for (int r = 0; r < n; ++r) {
+			char tmp = arr[r][n - 1 - i];
+			arr[r][n - 1 - i] = arr[r][i];
+			arr[r][i] = tmp;
+		}
+	}
+	
+	//output(arr, n);
+}
+
+bool equal(char arr[10][10], char exp[10][10], int n) {
+	for (int i = 0; i < n; ++i) {
+		for (int j = 0; j < n; ++j) {
+			if (arr[i][j] != exp[i][j]) {
+				return false;
+			}
+		}
+	}
+	
+	return true;
+}
+
+int checkRotate(char arr[10][10], char exp[10][10], int n) {
+	for (int i = 1; i < 3; ++i) {
+		rotate90(arr, n);
+		if (equal(arr, exp, n)) return i;
+	}
+	return 7;
+}
+
+int main(int argc, char** argv) {
+	ifstream fin("transform.in");
+	ofstream fout("transform.out");
+
+	int n;
+	char arr[10][10];
+	char ref[10][10];
+	
+	fin >> n;
+	string str;
+	for (int i = 0; i < n; ++i) {
+		fin >> str;
+		for (int j = 0; j < n; ++j) {
+			arr[i][j] = str[j];
+			ref[i][j] = str[j];
+		}
+	}
+	
+	char exp[10][10];
+	for (int i = 0; i < n; ++i) {
+		fin >> str;
+		for (int j = 0; j < n; ++j) {
+			exp[i][j] = str[j];
+		}
+	}
+	
+	int min = 7;
+	if (equal(arr, exp, n)) {
+		min = 6;
+	}
+	
+	reflect(ref, n);
+	if (equal(ref, exp, n)) {
+		min = 4;
+	}
+
+	int ret;
+	if ( (ret = checkRotate(arr, exp, n)) != 7) {
+		min = ret;
+	} else if (checkRotate(ref, exp, n) != 7) {
+		if (5 < min) min = 5;
+	}
+	
+	fout << min << endl;
+
+	return 0;
+}

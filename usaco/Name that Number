@@ -1,0 +1,81 @@
+/*
+ID: paul.ra1
+LANG: C++
+TASK: namenum
+*/
+
+#include <iostream>
+#include <algorithm>
+#include <fstream>
+#include <sstream>
+#include <set>
+
+using namespace std;
+
+set<string> dict;
+set<string> names;
+string nummap[8] = { "ABC", "DEF", "GHI", "JKL", "MNO", "PRS", "TUV", "WXY" };
+
+void genName(string& str, char name[], int index) {
+	if (index == str.length()) {
+		name[index] = '\0';
+		string tmp(name);
+		if (dict.find(tmp) != dict.end()) {
+			names.insert(tmp);
+		}
+		
+		return;
+	}
+
+	string nmap = nummap[(str[index] - '0') - 2];
+	for (int i = 0; i < 3; ++i) {
+		name[index] = nmap[i];
+		genName(str, name, index + 1);
+	}
+}
+
+void genName1(string str, string name) {
+	if (name.length() == str.length()) {
+		if (dict.find(name) != dict.end()) {
+			names.insert(name);
+		}
+		
+		return;
+	}
+
+	string nmap = nummap[(str[name.length()] - '0') - 2];
+	for (int i = 0; i < 3; ++i) {
+		genName1(str, name + nmap[i]);
+	}
+}
+
+int main(int argc, char** argv) {
+	ifstream fin("namenum.in");
+	ofstream fout("namenum.out");
+
+	string str;
+	fin >> str;
+	//cout << str << endl;
+
+	ifstream d("dict.txt");
+	string name;
+	while (d >> name) {
+		dict.insert(name);
+	}
+		
+	char tmp[13];
+	genName(str, tmp, 0);
+	
+	if (names.size() == 0) {
+		fout << "NONE" << endl;
+	} else {
+		//sort(names.begin(), names.end());
+		set<string>::iterator it = names.begin();
+		while (it != names.end()) {
+			fout << *it << endl;
+			++it;
+		}
+	}
+	
+	return 0;
+}
