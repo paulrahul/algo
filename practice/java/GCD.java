@@ -1,4 +1,6 @@
 public class GCD {
+	// O(log (A + B))
+	
 	private static int gcd(int a, int b) {
 		if (b > a) {
 			a = a + b;
