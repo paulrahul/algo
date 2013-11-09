@@ -9,6 +9,18 @@
 // abccbba -> ""
 // bbacdddcf -> af
 // aaaaa -> ""
+//
+// Input format - Each test input string lies in a separate line
+// E.g.
+// abcde
+// abba
+// abbcb
+//
+// Output format - A line each for each input string
+// E.g.
+// abcde
+// 
+// acb
 
 #include <iostream>
 #include <string>
@@ -46,7 +58,7 @@ string collapse(string str, int idx) {
 	string rem = collapse(str, idx);
 	if (rem.length() == 0 || rem[0] != ch) {
 		// No more collapse possible.
-		return ch + rem;
+		return ch + collapse(rem, 0);
 	}
 
 	idx = 0;
