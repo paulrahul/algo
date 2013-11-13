@@ -46,7 +46,7 @@ int main() {
 		int mn = 0;
 		map<int, seq>::iterator iter = data.begin();
 		while (iter != data.end()) {
-			if (iter->second.mx - iter->second.mn > mx - mn) {
+			if (iter->second.mx - iter->second.mn >= mx - mn) {
 				mx = iter->second.mx;
 				mn = iter->second.mn;
 			}
