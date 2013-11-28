@@ -55,7 +55,7 @@ int main() {
 	while (t--) {
 		cin >> num;
 		cin >> k;
-		cout << num << " -> " << delete_k(num, k) << endl;
+		cout << /*num << " -> " <<*/ delete_k(num, k) << endl;
 	}
 
 	return 0;

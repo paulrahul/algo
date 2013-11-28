@@ -110,7 +110,8 @@ int main() {
 						area_mp[cc] = 0;
 					}
 					area_mp[cc] += area;
-					if (area_mp[cc] > mx) {
+					if (area_mp[cc] > mx ||
+					    (area_mp[cc] == mx && cc < ans_col)) {
 						mx = area_mp[cc];
 						ans_col = cc;
 					}
