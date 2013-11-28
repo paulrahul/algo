@@ -6,14 +6,14 @@
 
 using namespace std;
 
-string delete_k(string num, int k) {
+string delete_k(string num, int k, int start) {
 	if (k == 0) {
 		return num;
 	}
 	
 	int len = num.length();
 	
-	int r = 1;
+	int r = start + 1;
 	bool found = false;
 	while (!found) {
 		// Scan from left and find the digit which is lesser than
@@ -36,13 +36,16 @@ string delete_k(string num, int k) {
 		}
 		
 		if (l < r) {
-			// So num[l] goes out.
-			num = num.substr(0, l) + num.substr(l + 1, string::npos);
+			// So num[l ... r - 1] go out.
+			for (int i = l; i < r; ++i) {
+				num[i] = 'x';  // Sentinel character.
+				--k;
+			}
 			found = true;
 		}
 	}
 	
-	num = delete_k(num, k - 1);
+	num = delete_k(num, k, r + 1);
 	return num;
 }
 
@@ -55,7 +58,16 @@ int main() {
 	while (t--) {
 		cin >> num;
 		cin >> k;
-		cout << /*num << " -> " <<*/ delete_k(num, k) << endl;
+		
+		// cout << num << " -> ";
+		string ans = delete_k(num, k, 0);
+		// Ignore sentinel characters and print.
+		int len = ans.length();
+		for (int i = 0; i < len; ++i) {
+			if (ans[i] == 'x') continue;
+			cout << ans[i];
+		}
+		cout << endl;
 	}
 
 	return 0;
