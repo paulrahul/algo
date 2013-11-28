@@ -1,3 +1,28 @@
+// Given a 2D matrix where each cell has some integral color code, we define a
+// color block as a group of adjacent cells where each of those cells has the
+// same color code. The adjacent cells of a given cell are all all the cells to
+// the eight adjacent sides of it without any wrapping (border cells will have
+// lesser adjacent cells). Now, we define the area of a particular color block
+// as the square of the number of cells in that block.
+// 
+// Given a 2D matrix, print out the color which has the maximum area of color
+// blocks. Also, print out the area for that color.
+//
+// Sample Input:
+// 1
+// 5 5
+// 1 2 3 4 5
+// 1 1 2 2 3
+// 2 3 4 5 1
+// 1 2 3 4 5
+// 2 1 2 1 3
+//
+// Sample Output:
+// 2 25
+//
+// DFS and Hashmap. O(N^2)
+
+
 #include <iostream>
 #include <map>
 #include <vector>
@@ -72,7 +97,7 @@ int main() {
 			}
 		}
 		
-		map<int, int> cnt_mp;
+		map<int, int> area_mp;
 		int ans_col = -1;
 		int mx = 0;
 		for (int i = 0; i < m; ++i) {
@@ -80,12 +105,13 @@ int main() {
 				if (!col[i][j]) {
 					int cc = arr[i][j];
 					int cnt = dfs(arr, &col, i, j, cc);
-					if (cnt_mp.find(cc) == cnt_mp.end()) {
-						cnt_mp[cc] = 0;
+					int area = cnt * cnt;
+					if (area_mp.find(cc) == area_mp.end()) {
+						area_mp[cc] = 0;
 					}
-					cnt_mp[cc] += cnt;
-					if (cnt_mp[cc] > mx) {
-						mx = cnt_mp[cc];
+					area_mp[cc] += area;
+					if (area_mp[cc] > mx) {
+						mx = area_mp[cc];
 						ans_col = cc;
 					}
 				}
