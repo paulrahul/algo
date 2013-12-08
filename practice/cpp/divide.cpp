@@ -1,101 +1,142 @@
 #include <iostream>
 #include <string>
-#include <vector>
+#include <cstring>
 
 using namespace std;
 
-// Returns if negative or not.
-bool StripLeadingZeroes(string* num) {
-	if (num == NULL || num->length() == 0) {
-		return false;
+// Returns carry value. Sum of digits is set in d1.
+int AddDigits(char* c1, const char c2, int c) {
+	int d1 = *c1 - '0';
+	int d2 = c2 - '0';
+	int t = d1 + d2 + c;
+	if (t > 9) {
+		c = 1;
+	} else {
+		c = 0;
 	}
-	
-	int len = num->length();
-	int i = -1;
-	bool neg = false;
-	while (i + 1 < len && (num[i + 1] == "0" || num[i + 1] == "-"))  {
-		++i;
-		if (num[i] == "-") {
-			neg = true;
-		}
-	}
-	
-	*num = num->substr(i + 1);
-	return neg;
+
+	*c1 = '0' + (t % 10);
+	return c;
 }
 
-int Add(string& a, const string& b, int alen, bool sub = false) {
-	// NULL checks already done outside.
-	int blen = b.length();  // Will not be more than alen.
+// Returns carry value. Difference of digits is set in d1.
+int SubtractDigits(char *c1, const char c2, int c) {
+	int d1 = *c1 - '0';
+	int d2 = c2 - '0';
+
+	int s1 = d1 - c;
+	if (s1 < d2) {
+		c = 1;
+		if (s1 < 0) {
+			s1 = 9;
+		} else {
+			s1 += 10;
+		}
+	} else {
+		c = 0;
+	}
+
+	*c1 = '0' + (s1 - d2);
+	return c;
+}
+
+void increment(char* num, int len) {
+	// Increment least significant digit by 1.
+	int c = AddDigits(&num[len - 1], '1', 0);
 	
+	// Now increment other digits till carry is present.
+	int i = len - 2;
+	while (i >= 0 && num[i] != ' ' && c == 1) {
+		c = AddDigits(&num[i], '0', c);
+		--i;
+	}
+
+	// If carry still present, that means the number is increasing
+	// to one more number of digits (e.g. 99 -> 100). So convert the
+	// next significant digit to 1.
+	if (i >= 0 && c == 1) {
+		num[i] = '1';
+	}	
+}
+
+// Returns true if difference is positive.
+bool subtract(char* a, const char* b, int alen, int blen) {
+	char bkup[alen + 1];
+	strcpy(bkup, a);
+
+	// First subtract all digits of b from corresponding
+	// digits of a.
 	int c = 0;
-	for (int i = 0, ai = alen - 1, bi = blen - 1; i < blen; ++i, --ai, --bi) {
-		int anum = a[ai] - '0';
-		int bnum = b[bi] - '0';
-		
-		int t = anum + bnum + c;
-		if (t > 9) {
-			c = 1;
-		}
-		a[ai] = (char) ('0' + (t % 10));
-	}
-	
-
-	for (int i = alen - blen; i >= 0 && a[i] != ' '; --i) {
-		int anum = a[i] - '0' + c;
-		if (anum > 9) {
-			c = 1;
-		}
-		a[i] = (char) ('0' + (anum % 10));	
+	int i = alen - 1;
+	int j = blen - 1;
+	for (; j >= 0; --i, --j) {
+		c = SubtractDigits(&a[i], b[j], c);
 	}
 
-	
-	// Check the first digit. If 0, then the digit to the left must be set to 1.
-	if (a[a.length() - alen] == '0') {
-		++alen;
-		a[a.length() - alen] = '1';
+	// If carry still left and no more digit is present
+	// in a, then the difference is negative.
+	if (c == 1 && (i < 0 || a[i] == ' ')) {
+		strcpy(a, bkup);
+		return false;
 	}
-	
-	return alen;
+
+	// Keep on deducting more significant digits till carry is present.
+	while (i >= 0 && a[i] != ' ' && c == 1) {
+		c = SubtractDigits(&a[i], '0', c);
+		--i;
+	}
+
+	// Did not reach the end. Nothing more to do.
+	if (i >= 0 && a[i] != ' ') {
+		return true;
+	}
+
+	// If most significant digit is 0, then that means the number is
+	// decreasing in number of digits. Set the most siginificant digit
+	// to ' '
+	if (a[i + 1] == '0') {
+		a[i + 1] = ' ';
+	}
+
+	return true;
+}
+
+string sanitize(char* num, int len) {
+	int i = -1;
+	while (i + 1 < len && (num[i + 1] == '0' || num[i + 1] == ' ')) {
+		++i;
+	}
+
+	string ret(num + i + 1, num + len);
+	if (ret == "") {
+		ret = "0";
+	}
+
+	return ret;
+}
+
+void divide(const string& a, const string& b) {
+	const char* src = a.c_str();
+	char dividend[a.length() + 1];
+	strcpy(dividend, src);
+	const char* divisor = b.c_str();
+
+	char q[a.length()];
+	memset(q, ' ', a.length());
+	q[a.length() - 1] = '0';
+	while (subtract(dividend, divisor, a.length(), b.length())) {
+		increment(q, a.length());
+	}
+
+	cout << sanitize(q, a.length()) << " " << sanitize(dividend, a.length()) << endl;		
 }
 
 int main() {
 	string a, b;
-	
+
 	while (cin >> a >> b) {
-		bool aneg = StripLeadingZeroes(&a);
-		bool bneg = StripLeadingZeroes(&b);		
-		
-		int alen = a.length();
-		int blen = b.length();
-		
-		// First, the edge cases.
-		if (alen == 0 || blen == 0) {
-			// Invalid input.
-			cout << "Invalid input." << endl;
-		} else if (b == "0") {
-			// Divide by zero.
-			cout << "NAN NAN" << endl;
-		} else if (b == "1") {
-			cout << a << " " << "0" << endl;
-		} else if (blen > alen) {
-			// b has more digits than a, so b > a
-			cout << "0 " << a << endl;
-		} else {
-			// b has same or lesser length as a and is more than 1.
-			// Do the normal process now.
-			
-			string q(a.length(), ' ');
-			q[q.length() - 1] = '0';
-			
-			int len = b.length();
-			for (int i = 0; i < 20; ++i) {
-				len = Add(q, "1", len);
-				cout << q << endl;				
-			}
-		}
-		
+		divide(a, b);
 	}
-	
+
 	return 0;
 }
