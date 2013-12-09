@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <cstring>
 
 using namespace std;
 
@@ -161,9 +162,12 @@ void divide(const string& a, const string& b) {
 }
 
 int main() {
+	int t;
 	string a, b;
 	
-	while (cin >> a >> b) {
+	cin >> t;
+	while (t--) {
+		cin >> a >> b;
 		divide(a, b);
 	}
 	
