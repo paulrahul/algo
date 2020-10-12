@@ -14,7 +14,7 @@ block = namedtuple("block", "color start end")
 MAG = 13                                                                                            
 def solve(color_map, coord_map, y, im):
     draw = ImageDraw.Draw(im)
-    draw.text((0, y + 5), "Seen from bottom")
+    draw.text((0, y + 5), "Seen from bottom", "Grey")
 
     y += 20
     solution = find_top_view(color_map, coord_map)
@@ -61,16 +61,17 @@ def find_top_view(color_map, coord_map):
         else: # Right edge
             color_map.pop(curr_idx)
             # new_color will be the new top most block's color.
-            if color_map:
-                k = curr_idx - 1
-                while (k >= 0 and k not in color_map or 
-                       color_map[k].start >= curr_coord):
-                    k -= 1
+            k = curr_idx - 1
+            while (k >= 0 and
+                   (k not in color_map or  # This color not yet encountered.
+                    color_map[k].start >= curr_coord)):
+                k -= 1
+            if color_map and k >= 0:
                 new_color = color_map[k].color
                 top_idx = k
                 prev_idx = k
             else:
-                new_color = "B"
+                new_color = "Black"
 
         prev_coord = curr_coord
     
@@ -80,7 +81,7 @@ def init_image():
     return Image.new('RGBA', (1400, 768), (128, 128, 128, 0))
 
 def finalise_image(im):
-    im.save('pillow_imagedraw.png', quality=95)
+    im.save('lego_visualisation.png', quality=95)
 
 def draw_rect(start, end, y, color, im):
     #print "draw %d %d %d %s" % (start, end, y, color)
@@ -134,8 +135,5 @@ if __name__ == "__main__":
             break
 
     solve(color_map, coord_map, y, im)
-
-    #draw_rect(10, 20, 100, (0, 128, 0, 128), im)
-    #raw_rect(15, 30, 100, (0, 0, 255, 128), im)
 
     finalise_image(im)
