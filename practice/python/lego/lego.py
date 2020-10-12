@@ -1,7 +1,6 @@
 '''
 TODOs:
 1. Make the scale magnification easier.
-2. Add ability to treat Black as the default floor color.
 '''
 
 from collections import namedtuple
