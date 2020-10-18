@@ -11,6 +11,8 @@ from PIL import Image, ImageColor, ImageDraw
 edge = namedtuple("edge", "index type")
 block = namedtuple("block", "color start end")
 MAG = 13                                                                                            
+
+# Main solving entry method.
 def solve(color_map, coord_map, y, im):
     draw = ImageDraw.Draw(im)
     draw.text((0, y + 5), "Seen from bottom", "Grey")
