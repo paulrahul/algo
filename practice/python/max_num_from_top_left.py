@@ -2,6 +2,8 @@
 https://app.codility.com/programmers/task/max_path_from_the_left_top_corner/
 '''
 
+from functools import cmp_to_key
+
 def get_neigbour_score(aux_pos, m, n, r, c):
     l = []
     if r == m - 1 and c < n  - 1:
@@ -34,25 +36,22 @@ def process_diagonal(A, m, n, r, c, aux_pos):
 
     #print("column diagonal list for %d,%d: %s" % (r, c, l))
 
+    def cmp(t1, t2):
+        swap = t2[0] - t1[0]
+        if t1[0] == t2[0]:
+            # Check neighbours.
+            n_pos1 = get_min_neighbour(
+                    aux_pos, m, n, t2[1] // n, t2[1] % n)
+            n_pos2 = get_min_neighbour(
+                    aux_pos, m, n, t1[1] // n, t1[1] % n)
+
+            swap = n_pos2 - n_pos1
+
+        return swap
+
     # Now sort (descending) l based on the value first, then neighbouring
     # values.
-    llen = len(l)
-    for j in range(0, llen -1):
-        for k in range(j + 1, llen):
-            swap = (l[k][0] > l[j][0])
-            if l[k][0] == l[j][0]:
-                # Check neighbours.
-                n_pos1 = get_min_neighbour(
-                        aux_pos, m, n, l[k][1] // n, l[k][1] % n)
-                n_pos2 = get_min_neighbour(
-                        aux_pos, m, n, l[j][1] // n, l[j][1] % n)
-
-                swap = (n_pos1 < n_pos2)
-
-            if swap:
-                tmp = l[j]
-                l[j] = l[k]
-                l[k] = tmp
+    l = sorted(l, key=cmp_to_key(cmp))
 
     r1 = r
     c1 = c
