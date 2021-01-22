@@ -20,46 +20,91 @@ def get_neigbour_score(aux_pos, m, n, r, c):
 def get_min_neighbour(aux_pos, m, n, r, c):
     return min(get_neigbour_score(aux_pos, m, n, r, c))
 
+# l is [ (min_neighbour_val, coord), ... ]
+def count_sort(l):
+    llen = len(l)
+
+    m = max(l, key=lambda item:item[0])[0]
+    carr = [0] * (m + 1)
+
+    #print("max for %s is %d\n" % (l, m))
+
+    for i in range(llen):
+        carr[l[i][0]] += 1
+
+    for i in range(1, m + 1):
+        carr[i] += carr[i - 1]
+
+    #print("carr for %s is %s\n" % (l, carr))
+
+    out = [None] * llen
+    for i in range(llen):
+        pos = carr[l[i][0]] - 1
+        out[pos] = l[i]
+        carr[l[i][0]] -= 1
+
+    #print("out for %s is %s\n" % (l, out))
+
+    return out
+
 def process_diagonal(A, m, n, r, c, aux_pos):
     m = len(A)
     n = len(A[0])
 
     # The indices in consideration are:
     # A[r][c], A[r - 1][c + 1], A[r - 2][c + 2]....A[0][n]
-    l = []
+    d_map = {}
     r1 = r
     c1 = c
     while r1 >= 0 and c1 < n:
-        l.append((A[r1][c1], r1 * n + c1))
+        val = A[r1][c1]
+        if val in d_map:
+            d_map[val].append(r1 * n + c1)
+        else:
+            d_map[val] = [r1 * n + c1]
         r1 -= 1
         c1 += 1
 
-    #print("column diagonal list for %d,%d: %s" % (r, c, l))
+    #print("column diagonal list for %d,%d: %s" % (r, c, d_map))
 
-    def cmp(t1, t2):
-        swap = t2[0] - t1[0]
-        if t1[0] == t2[0]:
-            # Check neighbours.
-            n_pos1 = get_min_neighbour(
-                    aux_pos, m, n, t2[1] // n, t2[1] % n)
-            n_pos2 = get_min_neighbour(
-                    aux_pos, m, n, t1[1] // n, t1[1] % n)
+    def cmp(coord1, coord2):
+        # Check neighbours.
+        n_pos1 = get_min_neighbour(
+                aux_pos, m, n, coord1 // n, coord1 % n)
+        n_pos2 = get_min_neighbour(
+                aux_pos, m, n, coord2 // n, coord2 % n)
 
-            swap = n_pos2 - n_pos1
+        return n_pos1 - n_pos2
 
-        return swap
 
-    # Now sort (descending) l based on the value first, then neighbouring
-    # values.
-    l = sorted(l, key=cmp_to_key(cmp))
+    # Now sort (descending) l based on neighbouring values.
+    for k, v in d_map.items():
+        lv = len(v)
+        if lv > 1:
+            for i in range(lv):
+                sort_list = ([
+                    (get_min_neighbour(aux_pos, m, n, x // n, x % n), x) for x in
+                    v])
+            sort_list = count_sort(sort_list)
+            d_map[k] = [x[1] for x in sort_list]
+
+    # Now flatten the list by iterating from 9 to 1, taking each key's
+    # elements from the respective list in order.
+    flat_list = []
+    for key in range(9, 0, -1):
+        if not key in d_map:
+            continue
+        llen = len(d_map[key])
+        for i in range(llen):
+            flat_list.append((key, d_map[key][i]))
 
     r1 = r
     c1 = c
     k = 0
     while r1 >= 0 and c1 < n:
-        val = l[k][0]
-        orig_r = l[k][1] // n
-        orig_c = l[k][1] % n
+        val = flat_list[k][0]
+        orig_r = flat_list[k][1] // n
+        orig_c = flat_list[k][1] % n
 
         aux_pos[orig_r][orig_c] = k
 
@@ -67,7 +112,7 @@ def process_diagonal(A, m, n, r, c, aux_pos):
         r1 -= 1
         c1 += 1
 
-    #print("column diagonal list for %d,%d: %s" % (r, c, l))
+    #print("column diagonal list for %d,%d: %s" % (r, c, flat_list))
 
 def solution(A):
     m = len(A)
