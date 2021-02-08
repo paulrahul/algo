@@ -22,45 +22,52 @@ def solution(juice, capacity):
     for i in range(1, n):
         juice_sum[i] = juice[i - 1][0] + juice[i][0]
 
-    # Merge the two arrays.
-    i = 0
-    j = 0
 
-    ans = 1 # Mixing with no one else, so 1 count for self.
-    while i < n and j < n:
-        if juice_sum[i] <= capacity[j][0]:
+    # For each capacity, find the max juice_sum possible without including
+    # itself.
+    ans = 1
+
+    next_cap_idx = 0
+    i = -1
+    while i < n and next_cap_idx < n:
+        while i + 1 < n  and juice_sum[i + 1] <= capacity[next_cap_idx][0]:
             i += 1
+            continue
+
+        # So all juices upto i are eligible for capacity[next_cap_idx].
+        # Let's check if the capacity jug itself is included in the juices list
+        # or not.
+        juice_idx = j_idx[capacity[next_cap_idx][1]]
+
+        if juice[juice_idx][0] > capacity[next_cap_idx][0]:
+            ans = max(ans, i + 2) 
+            # Since i is 0-indexed, i + 1 juice glasses, and +1 for the
+            # capacity glass itself which is exclusive.
         else:
-            juice_idx = j_idx[capacity[j][1]]
-            if juice_idx >= i:
-                ans = max(ans, i + 1)
-                # i for the other juices to be mixed and +1 for the container
-                # "hosting" those other juices since all of them are exclusive.
-            else:
-                # "Host" itself is one of the juices to be mixed. So we can not
-                # double add that juice. Hence, we'll subtract that juice
-                # quantity from the sum first, and then see if a further juice
-                # could be added.
-                # We need to see how further ahead, capacity could have been
-                # placed, now that we need to remove juice[juice_idx]. BTW, it
-                # can go further by only one index since anything at >=i will
-                # be >= juice[juice_idx]. So the difference left will not be
-                # able to accommodate any more element.
+            # So the capacity glass itself is involved in the mixing which is
+            # not possible. So we need to see if the next min juice glass can
+            # be used or not for this capacity.
+            if i + 1  < n:
+                next_min_juice = juice[i + 1][0]
                 depleted_sum = juice_sum[i] - juice[juice_idx][0]
-                if (i + 1 < n and depleted_sum + juice[i + 1][0] <=
-                    capacity[j][0]):
-                    # Again, "host" is exclusive from all other juices added,
-                    # hence i + 1 as explained above.
-                    ans = max(ans, i + 1)
+                if depleted_sum + next_min_juice <= capacity[next_cap_idx][0]:
+                    ans = max(ans, i + 2)
                 else:
-                    # "Host" is one of the juices added.
-                    ans = max(ans, i)
+                    ans = max(ans, i + 1)
+            else:
+                ans = max(ans, i + 1)
 
-            j += 1
+        next_cap_idx += 1
 
-    if j < n:
-        # That means all juices can be used.
-        ans = i + 1
+    if i == n and next_cap_idx < n:
+        # So we still have some capacities which can hold basically all other
+        # juices. Hence ans is the max possible, which is n.
+        ans = n
+    elif i < n and next_cap_idx == n:
+        # So some juice glasses are still left but they have more juice than
+        # any available capacity or they can not be clubbed with any other
+        # juice leading to a higher ans. Hence, do nothing.
+        pass
 
     return ans
 
