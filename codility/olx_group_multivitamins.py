@@ -76,3 +76,4 @@ if __name__ == "__main__":
     print(solution([1, 2, 3, 4], [3, 6, 4, 4]))
     print(solution([2, 3], [3, 4]))
     print(solution([1, 1, 5], [6, 5, 8]))
+    print(solution([1, 1, 1], [6, 6, 6]))
