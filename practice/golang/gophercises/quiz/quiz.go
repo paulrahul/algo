@@ -3,9 +3,11 @@ package main
 import (
   "bufio"
   "encoding/csv"
+  "flag"
   "fmt"
   "log"
   "os"
+  "strings"
 )
 
 func quiz(questions map[string]string) (int, error) {
@@ -17,11 +19,11 @@ func quiz(questions map[string]string) (int, error) {
     fmt.Printf("[%d] %s: ", i, k)
     fmt.Scanf("%s\n", &ans)
 
-    if ans == v {
+    if strings.EqualFold(ans, v) {
       score++
       fmt.Printf("Correct!\n")
     } else {
-      fmt.Printf("Wrong :(\n")
+      fmt.Printf("Wrong :(. The right answer is %s\n", v)
     }
   }
 
@@ -32,7 +34,11 @@ func quiz(questions map[string]string) (int, error) {
 func main() {
   log.SetFlags(log.Lshortfile);
 
-  f, err := os.Open("problems.csv")
+  var pathFlag = flag.String(
+    "path", "problems.csv", "Path of the quiz file")
+  flag.Parse()
+
+  f, err := os.Open(*pathFlag)
   if err != nil {
     log.Fatal(err)
   }
