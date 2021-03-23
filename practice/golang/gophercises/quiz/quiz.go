@@ -1,7 +1,10 @@
 package main
 
 import (
+  "encoding/csv"
   "fmt"
+  "log"
+  "strings"
 )
 
 func quiz(questions map[string]string) (int, error) {
@@ -26,11 +29,33 @@ func quiz(questions map[string]string) (int, error) {
 
 
 func main() {
-  m := map[string]string{"5+5": "10", "7+3": "10"}
+  log.SetFlags(log.Lshortfile);
+
+  in := `
+  "5+5", "10"
+  "7+3", "10"
+  "8+3, bitte", "11"
+  `
+  r := csv.NewReader(strings.NewReader(in))
+  r.LazyQuotes = true
+  r.FieldsPerRecord = -1
+  r.TrimLeadingSpace = true
+
+  records, err := r.ReadAll()
+  if err != nil {
+    log.Fatal(err)
+  }
+
+  m := make(map[string]string)
+  for _, r := range records {
+    if len(r) == 2 {
+      m[r[0]] = r[1]
+    }
+  }
+
   s, err := quiz(m)
   if err != nil {
-    fmt.Printf("Error: %v\n", err)
-    return
+    log.Fatal(err)
   }
 
   fmt.Printf("Your score is: %d/%d\n", s, len(m))
