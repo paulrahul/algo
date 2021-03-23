@@ -1,10 +1,11 @@
 package main
 
 import (
+  "bufio"
   "encoding/csv"
   "fmt"
   "log"
-  "strings"
+  "os"
 )
 
 func quiz(questions map[string]string) (int, error) {
@@ -31,12 +32,12 @@ func quiz(questions map[string]string) (int, error) {
 func main() {
   log.SetFlags(log.Lshortfile);
 
-  in := `
-  "5+5", "10"
-  "7+3", "10"
-  "8+3, bitte", "11"
-  `
-  r := csv.NewReader(strings.NewReader(in))
+  f, err := os.Open("problems.csv")
+  if err != nil {
+    log.Fatal(err)
+  }
+
+  r := csv.NewReader(bufio.NewReader(f))
   r.LazyQuotes = true
   r.FieldsPerRecord = -1
   r.TrimLeadingSpace = true
