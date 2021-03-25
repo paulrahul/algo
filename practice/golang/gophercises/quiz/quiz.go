@@ -8,34 +8,49 @@ import (
   "log"
   "os"
   "strings"
+  "sync"
+  "time"
 )
 
-func quiz(questions map[string]string) (int, error) {
+var score int
+var score_mutex sync.Mutex
+
+func quiz(questions map[string]string, done chan bool) (int, error) {
   var ans string
 
-  score := 0
+  score = 0
   i := 1
   for k, v := range questions {
     fmt.Printf("[%d] %s: ", i, k)
     fmt.Scanf("%s\n", &ans)
 
     if strings.EqualFold(ans, v) {
+      score_mutex.Lock()
       score++
+      score_mutex.Unlock()
       fmt.Printf("Correct!\n")
     } else {
       fmt.Printf("Wrong :(. The right answer is %s\n", v)
     }
   }
 
+  done <- true
+
   return score, nil
 }
 
+func timer(duration_secs int, done chan bool) {
+  time.Sleep(time.Duration(duration_secs) * 1000 * time.Millisecond)
+  done <- false
+}
 
 func main() {
   log.SetFlags(log.Lshortfile);
 
   var pathFlag = flag.String(
     "path", "problems.csv", "Path of the quiz file")
+  var timerFlag = flag.Int(
+    "timer_secs", 30, "Duration of the quiz in seconds.")
   flag.Parse()
 
   f, err := os.Open(*pathFlag)
@@ -60,10 +75,23 @@ func main() {
     }
   }
 
-  s, err := quiz(m)
-  if err != nil {
-    log.Fatal(err)
+  // Ask user before starting timer.
+  fmt.Printf("Quiz timer for %d seconds will start now. ", *timerFlag)
+  fmt.Printf("Press any key to start the quiz timer\n")
+  var ch string
+  fmt.Scanf("%s", &ch)
+
+  done := make(chan bool)
+  go quiz(m, done)
+  go timer(*timerFlag, done)
+
+  v, _ := <-done
+  if !v {
+    fmt.Printf("\nTime Up!\n")
   }
 
+  score_mutex.Lock()
+  s := score
+  score_mutex.Unlock()
   fmt.Printf("Your score is: %d/%d\n", s, len(m))
 }
