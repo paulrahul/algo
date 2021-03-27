@@ -47,9 +47,14 @@ func executeQuiz(m map[string]string, timer_secs int) {
     done <- true
   }()
 
+  timer := time.NewTimer(time.Duration(timer_secs) * 1000 * time.Millisecond)
+
   select {
   case <-done:
-  case <-time.After(time.Duration(timer_secs) * 1000 * time.Millisecond):
+    if !timer.Stop() {
+      <-timer.C
+    }
+  case <-timer.C:
     fmt.Printf("\nTime Up!\n")
   }
 
