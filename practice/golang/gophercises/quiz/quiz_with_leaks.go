@@ -45,6 +45,27 @@ func timer(duration_secs int, done chan bool) {
   done <- false
 }
 
+func executeQuiz(m map[string]string, timer_secs int) {
+  base := greak.New()
+
+  done := make(chan bool)
+  go quiz(m, done)
+  go timer(timer_secs, done)
+
+  v, _ := <-done
+  if !v {
+    fmt.Printf("\nTime Up!\n")
+  }
+
+  score_mutex.Lock()
+  s := score
+  score_mutex.Unlock()
+  fmt.Printf("Your score is: %d/%d\n", s, len(m))
+
+  after := base.Check()
+  fmt.Println("Sleeping goroutine should show here\n", after)
+}
+
 func main() {
   log.SetFlags(log.Lshortfile);
 
@@ -82,22 +103,5 @@ func main() {
   var ch string
   fmt.Scanf("%s", &ch)
 
-  base := greak.New()
-
-  done := make(chan bool)
-  go quiz(m, done)
-  go timer(*timerFlag, done)
-
-  v, _ := <-done
-  if !v {
-    fmt.Printf("\nTime Up!\n")
-  }
-
-  score_mutex.Lock()
-  s := score
-  score_mutex.Unlock()
-  fmt.Printf("Your score is: %d/%d\n", s, len(m))
-
-  after := base.Check()
-  fmt.Println("Sleeping goroutine should show here\n", after)
+  executeQuiz(m, *timerFlag)
 }
