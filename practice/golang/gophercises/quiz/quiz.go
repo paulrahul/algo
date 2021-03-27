@@ -5,6 +5,7 @@ import (
   "encoding/csv"
   "flag"
   "fmt"
+  "github.com/dbudworth/greak"
   "log"
   "os"
   "strings"
@@ -81,6 +82,8 @@ func main() {
   var ch string
   fmt.Scanf("%s", &ch)
 
+  base := greak.New()
+
   done := make(chan bool)
   go quiz(m, done)
   go timer(*timerFlag, done)
@@ -94,4 +97,7 @@ func main() {
   s := score
   score_mutex.Unlock()
   fmt.Printf("Your score is: %d/%d\n", s, len(m))
+
+  after := base.Check()
+  fmt.Println("Sleeping goroutine should show here\n", after)
 }
