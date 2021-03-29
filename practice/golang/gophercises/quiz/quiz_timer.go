@@ -6,6 +6,7 @@ import (
   "flag"
   "fmt"
   "github.com/dbudworth/greak"
+  "io"
   "log"
   "os"
   "strings"
@@ -16,14 +17,14 @@ import (
 var score int
 var score_mutex sync.Mutex
 
-func quiz(questions map[string]string) (int, error) {
+func quiz(questions map[string]string, r io.Reader) (int, error) {
   var ans string
 
   score = 0
   i := 1
   for k, v := range questions {
     fmt.Printf("[%d] %s: ", i, k)
-    fmt.Scanf("%s\n", &ans)
+    fmt.Fscanf(r, "%s\n", &ans)
 
     if strings.EqualFold(ans, v) {
       score_mutex.Lock()
@@ -38,12 +39,12 @@ func quiz(questions map[string]string) (int, error) {
   return score, nil
 }
 
-func executeQuiz(m map[string]string, timer_secs int) {
+func ExecuteQuiz(m map[string]string, timer_secs int, r io.Reader) {
   base := greak.New()
 
   done := make(chan bool, 1)
   go func() {
-    quiz(m)
+    quiz(m, r)
     done <- true
   }()
 
@@ -104,5 +105,5 @@ func main() {
   var ch string
   fmt.Scanf("%s", &ch)
 
-  executeQuiz(m, *timerFlag)
+  ExecuteQuiz(m, *timerFlag, os.Stdin)
 }
