@@ -1,7 +1,10 @@
-package urlshort
+package main
 
 import (
+	"log"
 	"net/http"
+
+	"gopkg.in/yaml.v2"
 )
 
 // MapHandler will return an http.HandlerFunc (which also
@@ -37,6 +40,56 @@ func MapHandler(pathsToUrls map[string]string, fallback http.Handler) http.Handl
 // See MapHandler to create a similar http.HandlerFunc via
 // a mapping of paths to urls.
 func YAMLHandler(yml []byte, fallback http.Handler) (http.HandlerFunc, error) {
-	// TODO: Implement this...
-	return nil, nil
+	parsedYaml, err := parseYaml(yml)
+	if err != nil {
+		return nil, err
+	}
+
+	pathsToUrls := buildMap(parsedYaml)
+	return MapHandler(pathsToUrls, fallback), nil
+}
+
+type URLMap struct {
+	path string
+	url  string
+}
+
+func buildMap(parsedYaml []URLMap) map[string]string {
+	m := make(map[string]string)
+	for _, um := range parsedYaml {
+		m[um.path] = um.url
+	}
+
+	return m
+}
+
+func parseYaml(yml []byte) ([]URLMap, error) {
+	um := URLMap{}
+	err := yaml.Unmarshal(yml, &um)
+	if err != nil {
+		return nil, err
+	}
+
+	return []URLMap{um}, nil
+}
+
+func main() {
+	// 	yaml := `
+	// 	- path: /urlshort
+	// 	  url: https://github.com/gophercises/urlshort
+	// 	- path: /urlshort-final
+	// 	  url: https://github.com/gophercises/urlshort/tree/solution
+	// `
+
+	yaml := `
+path: /urlshort
+url: https://github.com/gophercises/urlshort
+`
+
+	py, err := parseYaml([]byte(yaml))
+	if err != nil {
+		log.Println(err)
+	} else {
+		log.Println(py)
+	}
 }
