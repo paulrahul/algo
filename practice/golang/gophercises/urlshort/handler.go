@@ -13,7 +13,7 @@ import (
 func MapHandler(pathsToUrls map[string]string, fallback http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if v, ok := pathsToUrls[r.URL.String()]; ok {
-			http.Redirect(w, r, v, 200)
+			http.Redirect(w, r, v, http.StatusSeeOther)
 		} else {
 			fallback.ServeHTTP(w, r)
 		}
