@@ -17,6 +17,8 @@ var count uint64
 func siteStatsHandler(originalHandler http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/favicon.ico" {
+			// This is needed since Chrome issues an extra request per request
+			// to fetch the favicon.
 			log.Println("Adding to count")
 			atomic.AddUint64(&count, 1)
 		}
