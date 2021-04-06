@@ -34,7 +34,7 @@ func mainPageHandler(w http.ResponseWriter, r *http.Request) {
 
 func countPageHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("In countPageHandler")
-	fmt.Fprintf(w, "Visit count: %d\n", count)
+	fmt.Fprintf(w, "Visit count: %d\n", atomic.LoadUint64(&count))
 }
 
 func main() {
