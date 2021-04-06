@@ -2,18 +2,18 @@ package main
 
 import "fmt"
 
-type MyFunc func(string)
+type MyFunc func(int) string
 
 func (f MyFunc) ToString(x int) {
-	f(fmt.Sprintf("ToString calling MyFunc with %d", x))
+	fmt.Printf("MyFunc output: %s\n", f(x))
 }
 
 func main() {
 	var f MyFunc
-	f = func(s string) {
-		fmt.Printf("MyFunc called with %s\n", s)
+	f = func(x int) string {
+		return fmt.Sprintf("%d", x)
 	}
 
-	f("rahul")
+	f(10)
 	f.ToString(10)
 }
