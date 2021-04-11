@@ -73,7 +73,7 @@ func Solution(arr []int) int {
 
 	// Step 3. i.e. dp[i][j] = min(dp[i][j-1], dp[i+1][j]) for all [i, j]
 	// where i < j
-	var ans int
+	ans := 1
 	for l := 2; l <= n; l++ {
 		for i := 0; i <= n-l; i++ {
 			j := i + l - 1
@@ -94,4 +94,5 @@ func main() {
 	fmt.Println(Solution([]int{1, 2, 5, 3, 1, 3}))
 	fmt.Println(Solution([]int{3, 3, 3, 5, 4}))
 	fmt.Println(Solution([]int{6, 5, 5, 6, 2, 2}))
+	fmt.Println(Solution([]int{6, 6, 6, 6, 6}))
 }
