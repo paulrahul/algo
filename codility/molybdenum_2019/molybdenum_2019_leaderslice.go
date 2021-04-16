@@ -1,15 +1,20 @@
+// https://app.codility.com/programmers/task/leader_slice_inc/
+// Given an array, find all its elements that can become a leader, after
+// increasing by 1 all of the numbers in some segment of a given length.
+//
+// Linear solution used here: R - O(M), S - O(M)
+// Gist of the algo:
+// 1. Compute the solution for the first k-window (0..k-1)
+// 2. Then in each iteration, slide the window by 1 place and recompute the
+//    leader value in previous's first position (the index going out) and the
+//    new window's last position (the index coming in).
+
 package main
 
 import (
 	"fmt"
 	"sort"
 )
-
-func dump(kChunkCount map[int]int, numCount map[int]int, begin int, end int, num int, halfCount int, leaderCount int) {
-	// fmt.Printf("kChunkCount: %v\n", kChunkCount)
-	// fmt.Printf("numCount: %v\n", numCount)
-	// fmt.Printf("leadercount %d against halfcount %d in range [%d, %d] for num %d\n\n", leaderCount, halfCount, begin, end, num)
-}
 
 func computeLeader(
 	kChunkCount map[int]int, numCount map[int]int, previousKAns map[int]bool,
@@ -25,7 +30,6 @@ func computeLeader(
 }
 
 func Solution(k int, m int, arr []int) []int {
-	// fmt.Println(arr)
 	n := len(arr)
 
 	numCount := make(map[int]int)
@@ -43,7 +47,6 @@ func Solution(k int, m int, arr []int) []int {
 	// Process the first k-chunk starting from 0...k-1
 	kChunkCount := make(map[int]int)
 	previousKAns := make(map[int]bool)
-	// var leaderCount int
 	halfCount := n/2 + 1
 	for i := 0; i < k; i++ {
 		num = arr[i]
@@ -52,14 +55,12 @@ func Solution(k int, m int, arr []int) []int {
 		}
 		kChunkCount[num]++
 
-		// dump(kChunkCount, numCount, 0, k-1, num, halfCount, leaderCount)
 		computeLeader(kChunkCount, numCount, previousKAns, halfCount, num+1)
 	}
 
 	ans := make(map[int]bool)
 	if len(previousKAns) == 1 {
 		for ansKey := range previousKAns {
-			// fmt.Printf("Leader %d for range [%d, %d]\n", ansKey, 0, k-1)
 			ans[ansKey] = true
 		}
 	}
@@ -80,29 +81,16 @@ func Solution(k int, m int, arr []int) []int {
 		// Recompute the two ends for the current k-chunk, starting with the
 		// previous beginning.
 		num = arr[begin-1]
-		// dump(kChunkCount, numCount, begin, begin+k-1, num, halfCount, leaderCount)
 		computeLeader(kChunkCount, numCount, previousKAns, halfCount, num+1)
 		computeLeader(kChunkCount, numCount, previousKAns, halfCount, num)
 
 		// Then the new end.
 		num = arr[begin+k-1]
-		// dump(kChunkCount, numCount, begin, begin+k-1, num, halfCount, leaderCount)
 		computeLeader(kChunkCount, numCount, previousKAns, halfCount, num+1)
 		computeLeader(kChunkCount, numCount, previousKAns, halfCount, num)
 
-		// // Also check if num - 1 was in the previous k-chunk.
-		// if _, ok := previousKAns[num-1]; ok {
-		// 	leaderCount = kChunkCount[num-1]
-		// 	leaderCount += numCount[num]
-		// 	dump(kChunkCount, numCount, begin, begin+k-1, num-1, halfCount, leaderCount)
-		// 	if leaderCount < halfCount {
-		// 		delete(previousKAns, num-1)
-		// 	}
-		// }
-
 		if len(previousKAns) == 1 {
 			for ansKey := range previousKAns {
-				// fmt.Printf("Leader %d for range [%d, %d]\n", ansKey, begin, begin+k-1)
 				ans[ansKey] = true
 			}
 		}
