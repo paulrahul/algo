@@ -4,89 +4,114 @@ import (
 	"fmt"
 )
 
-func max(x, y int) int {
-	if x > y {
-		return x
+func max(nums ...int) int {
+	mx := -1
+	for _, x := range nums {
+		if x > mx {
+			mx = x
+		}
 	}
 
-	return y
+	return mx
+}
+
+type MaxSameNums struct {
+	nums []int
+}
+
+func computeRange(
+	arr []int, k int, kDeficit int,
+	maxSame [][]MaxSameNums, ans [][]int, freq map[int]int) {
+
+	begin := 0
+	end := k - 1
+	// Compute the first k chunk.
+	maxSame[begin][end] = MaxSameNums{[]int{arr[begin]}}
+	freq[arr[begin]] = 1
+	mx := 1
+	var num int
+	for i := 1; i < k; i++ {
+		num = arr[i]
+		if _, ok := freq[num]; !ok {
+			freq[num] = 0
+		}
+		freq[num]++
+		mx = max(mx, freq[num])
+	}
+
+	for i := 0; i < k; i++ {
+		num = arr[i]
+		if freq[num] == mx {
+			maxSame[begin][end].nums = append(maxSame[begin][end].nums, num)
+		}
+	}
+
+	n := len(arr)
+	if mx >= kDeficit {
+		ans[begin][end] = k + kDeficit
+	} else {
+		ans[begin][end] = k + 1
+	}
+
+	// Compute the rest of the k chunks by sliding the window by 1 each time.
+	for begin := 1; begin <= n-k; begin++ {
+		end := begin + k - 1
+		freq[arr[begin-1]]--
+		num = arr[end]
+		if _, ok := freq[num]; !ok {
+			freq[num] = 0
+		}
+		freq[num]++
+
+		candidates := []int{freq[arr[begin-1]], freq[arr[end]]}
+		for _, c := range maxSame[begin-1][end-1].nums {
+			candidates = append(candidates, c)
+		}
+
+		mx = max(candidates...)
+		maxSame[begin][end] = MaxSameNums{[]int{}}
+		for _, c := range candidates {
+			if freq[c] == mx {
+				maxSame[begin][end].nums = append(maxSame[begin][end].nums, c)
+			}
+		}
+
+		if mx >= kDeficit {
+			ans[begin][end] = k + kDeficit
+		} else {
+			ans[begin][end] = k + 1
+		}
+	}
 }
 
 func Solution(arr []int, k int) int {
-	curr_start_idx := 0
-	next_start_idx := 1
-	ans := 1
-	used_k := 0
-
 	n := len(arr)
 
-	// Left to right.
-	i := 1
-	for i < n {
-		if arr[i] != arr[curr_start_idx] {
-			if used_k == 0 {
-				next_start_idx = i
-			}
-
-			if used_k < k {
-				used_k++
-			} else {
-				ans = max(ans, i - curr_start_idx)
-				curr_start_idx = next_start_idx
-				i = next_start_idx
-				used_k = 0
-
-				// Check if there are enough remaining elements to exceed ans
-				if n - i <= ans {
-					break
-				}				
-			}
-		}
-		i++
+	if n <= k+1 {
+		return n
 	}
 
-	// Check the trailing bit.
-	ans = max(ans, i - curr_start_idx)
-
-	// Now do the same but right to left.
-	curr_start_idx = n - 1
-	next_start_idx = n - 2
-	used_k = 0
-
-	i = n - 2
-	for i >= 0 {
-		if arr[i] != arr[curr_start_idx] {
-			if used_k == 0 {
-				next_start_idx = i
-			}
-
-			if used_k < k {
-				used_k++
-			} else {
-				ans = max(ans, curr_start_idx - i)
-				curr_start_idx = next_start_idx
-				i = next_start_idx
-				used_k = 0
-
-				// Check if there are enough remaining elements to exceed ans
-				if i + 1 <= ans {
-					break
-				}				
-			}
-		}
-		i--
+	maxSame := make([][]MaxSameNums, n)
+	ans := make([][]int, n)
+	for i := 0; i < n; i++ {
+		maxSame[i] = make([]MaxSameNums, n)
+		ans[i] = make([]int, n)
 	}
 
-	// Check the trailing bit.
-	ans = max(ans, curr_start_idx - i)
+	freq := make(map[int]int)
 
-	return ans
+	// Now keep computing larger chunks iteratively.
+	for l := k + 2; l <= n; l++ {
+		computeRange(arr, l, l-k, maxSame, ans, freq)
+	}
+
+	return ans[0][n-1]
 }
 
 func main() {
 	inp := []struct {
 		arr []int
-		k int
+		k   int
 	}{
 		{[]int{1, 1, 3, 4, 3, 3, 4}, 2},
 		{[]int{4, 5, 5, 4, 2, 2, 4}, 0},
