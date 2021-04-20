@@ -15,79 +15,78 @@ func max(nums ...int) int {
 	return mx
 }
 
+func min(x, y int) int {
+	if x < y {
+		return x
+	}
+	return y
+}
+
 type MaxSameNums struct {
-	nums []int
+	nums map[int]bool
 }
 
 func computeRange(
-	arr []int, k int, kDeficit int,
+	arr []int, l int, kDeficit int,
 	maxSame [][]MaxSameNums, ans [][]int, freq map[int]int) {
 
 	begin := 0
-	end := k - 1
+	end := l - 1
 	// Compute the first k chunk.
-	maxSame[begin][end] = MaxSameNums{[]int{arr[begin]}}
 	freq[arr[begin]] = 1
 	mx := 1
 	var num int
-	for i := 1; i < k; i++ {
+	for i := 1; i <= end; i++ {
 		num = arr[i]
-		if _, ok := freq[num]; !ok {
-			freq[num] = 0
-		}
 		freq[num]++
 		mx = max(mx, freq[num])
 	}
 
-	for i := 0; i < k; i++ {
+	maxSame[begin][end] = MaxSameNums{map[int]bool{}}
+	for i := 0; i <= end; i++ {
 		num = arr[i]
 		if freq[num] == mx {
-			maxSame[begin][end].nums = append(maxSame[begin][end].nums, num)
+			maxSame[begin][end].nums[num] = true
 		}
 	}
 
 	n := len(arr)
-	if mx >= kDeficit {
-		ans[begin][end] = k + kDeficit
-	} else {
-		ans[begin][end] = k + 1
-	}
+	k := l - kDeficit
+	mxCombination := min(l, mx+k)
+	ans[begin][end] = max(mxCombination, k+1)
 
 	// Compute the rest of the k chunks by sliding the window by 1 each time.
-	for begin := 1; begin <= n-k; begin++ {
-		end := begin + k - 1
+	for begin := 1; begin <= n-l; begin++ {
+		end := begin + l - 1
+
 		freq[arr[begin-1]]--
 		num = arr[end]
-		if _, ok := freq[num]; !ok {
-			freq[num] = 0
-		}
 		freq[num]++
 
-		candidates := []int{freq[arr[begin-1]], freq[arr[end]]}
-		for _, c := range maxSame[begin-1][end-1].nums {
+		candidateFreq := []int{freq[arr[begin-1]], freq[arr[end]]}
+		candidates := []int{arr[begin-1], arr[end]}
+		for c := range maxSame[begin-1][end-1].nums {
+			candidateFreq = append(candidateFreq, freq[c])
 			candidates = append(candidates, c)
 		}
 
-		mx = max(candidates...)
-		maxSame[begin][end] = MaxSameNums{[]int{}}
+		mx = max(candidateFreq...)
+		maxSame[begin][end] = MaxSameNums{map[int]bool{}}
 		for _, c := range candidates {
 			if freq[c] == mx {
-				maxSame[begin][end].nums = append(maxSame[begin][end].nums, c)
+				maxSame[begin][end].nums[num] = true
 			}
 		}
-
-		if mx >= kDeficit {
-			ans[begin][end] = k + kDeficit
-		} else {
-			ans[begin][end] = k + 1
-		}
+		mxCombination = min(l, mx+k)
+		ans[begin][end] = max(mxCombination, k+1)
 	}
 }
 
 func Solution(arr []int, k int) int {
 	n := len(arr)
 
-	if n <= k+1 {
+	if k >= n-1 {
+		// For both k = n or k = n - 1, we can make the entire array the same.
 		return n
 	}
 
@@ -98,10 +97,10 @@ func Solution(arr []int, k int) int {
 		ans[i] = make([]int, n)
 	}
 
-	freq := make(map[int]int)
-
+	var freq map[int]int
 	// Now keep computing larger chunks iteratively.
 	for l := k + 2; l <= n; l++ {
+		freq = make(map[int]int)
 		computeRange(arr, l, l-k, maxSame, ans, freq)
 	}
 
