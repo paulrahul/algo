@@ -4,15 +4,11 @@ import (
 	"fmt"
 )
 
-func max(nums ...int) int {
-	mx := -1
-	for _, x := range nums {
-		if x > mx {
-			mx = x
-		}
+func max(x, y int) int {
+	if x > y {
+		return x
 	}
-
-	return mx
+	return y
 }
 
 func min(x, y int) int {
@@ -22,89 +18,78 @@ func min(x, y int) int {
 	return y
 }
 
-type MaxSameNums struct {
-	nums map[int]bool
-}
-
-func computeRange(
-	arr []int, l int, kDeficit int,
-	maxSame [][]MaxSameNums, ans [][]int, freq map[int]int) {
-
-	begin := 0
-	end := l - 1
-	// Compute the first k chunk.
-	freq[arr[begin]] = 1
-	mx := 1
-	var num int
-	for i := 1; i <= end; i++ {
-		num = arr[i]
-		freq[num]++
-		mx = max(mx, freq[num])
-	}
-
-	maxSame[begin][end] = MaxSameNums{map[int]bool{}}
-	for i := 0; i <= end; i++ {
-		num = arr[i]
-		if freq[num] == mx {
-			maxSame[begin][end].nums[num] = true
-		}
-	}
-
-	n := len(arr)
-	k := l - kDeficit
-	mxCombination := min(l, mx+k)
-	ans[begin][end] = max(mxCombination, k+1)
-
-	// Compute the rest of the k chunks by sliding the window by 1 each time.
-	for begin := 1; begin <= n-l; begin++ {
-		end := begin + l - 1
-
-		freq[arr[begin-1]]--
-		num = arr[end]
-		freq[num]++
-
-		candidateFreq := []int{freq[arr[begin-1]], freq[arr[end]]}
-		candidates := []int{arr[begin-1], arr[end]}
-		for c := range maxSame[begin-1][end-1].nums {
-			candidateFreq = append(candidateFreq, freq[c])
-			candidates = append(candidates, c)
-		}
-
-		mx = max(candidateFreq...)
-		maxSame[begin][end] = MaxSameNums{map[int]bool{}}
-		for _, c := range candidates {
-			if freq[c] == mx {
-				maxSame[begin][end].nums[num] = true
-			}
-		}
-		mxCombination = min(l, mx+k)
-		ans[begin][end] = max(mxCombination, k+1)
-	}
+type RangeAns struct {
+	ans      int
+	numKUsed int
 }
 
 func Solution(arr []int, k int) int {
 	n := len(arr)
 
-	if k >= n-1 {
-		// For both k = n or k = n - 1, we can make the entire array the same.
-		return n
+	numIndices := make(map[int][]int)
+	for i, num := range arr {
+		numIndices[num] = append(numIndices[num], i)
 	}
 
-	maxSame := make([][]MaxSameNums, n)
-	ans := make([][]int, n)
-	for i := 0; i < n; i++ {
-		maxSame[i] = make([]MaxSameNums, n)
-		ans[i] = make([]int, n)
-	}
+	ans := 1
+	numAns := make([][]RangeAns, n)
+	// Now for each number in the original array, get the max possible answer.
+	// For each number, we analyse the number of gaps that are there in the
+	// original array and then see how many of them can be filled up to make
+	// the maximum consecutive sequence of that number.
+	for num := range numIndices {
+		// First, initialise the DP array for this number.
+		for i := 0; i < n; i++ {
+			numAns[i] = make([]RangeAns, n)
+			if arr[i] == num {
+				numAns[i][i] = RangeAns{1, 0}
+			} else {
+				if k > 0 {
+					numAns[i][i] = RangeAns{1, 1}
+				} else {
+					numAns[i][i] = RangeAns{0, 0}
+				}
+			}
+		}
+		// fmt.Printf("%d: %v\n", num, numAns)
 
-	var freq map[int]int
-	// Now keep computing larger chunks iteratively.
-	for l := k + 2; l <= n; l++ {
-		freq = make(map[int]int)
-		computeRange(arr, l, l-k, maxSame, ans, freq)
-	}
+		// Now build the DP upwards using the following logic:
+		// numAns[p, q] = max(numAns[p, r].ans + numAns[r + 1, q].ans) for any
+		// r >= p and <= q, such that
+		// numAns[p, r].numKUsed + numAns[r + 1, q].numKUsed <= k
+		for l := 1; l < n; l++ {
+			for p := 0; p < n-l; p++ {
+				q := p + l
+				for r := p; r < q; r++ {
+					tmpAns := numAns[p][r].ans + numAns[r+1][q].ans
+					tmpKUsed := numAns[p][r].numKUsed + numAns[r+1][q].numKUsed
 
-	return ans[0][n-1]
+					if tmpKUsed > k {
+						surplus := tmpKUsed - k
+						tmpAns -= surplus
+						tmpKUsed = k
+					}
+
+					if tmpAns < numAns[p][q].ans {
+						continue
+					}
+
+					if tmpAns == numAns[p][q].ans && tmpKUsed >= numAns[p][q].numKUsed {
+						continue
+					}
+
+					numAns[p][q].ans = tmpAns
+					numAns[p][q].numKUsed = tmpKUsed
+
+					ans = max(ans, tmpAns)
+				} // for r
+			} //for p
+		} // for l
+
+		// fmt.Printf("%d: %v\n", num, numAns)
+	} // for num
+
+	return ans
 }
 
 func main() {
