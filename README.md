@@ -1,7 +1,7 @@
 algo
 ====
 
-###### *Last Updated: 30-Mar-2021*
+###### *Last Updated: 10-Feb-2022*
 
 Contains my implementations of algorithmic problems from various algorithmic problem portals.
 
