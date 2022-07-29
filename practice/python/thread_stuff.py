@@ -89,7 +89,7 @@ if __name__ == "__main__":
     """
     threads = []
     threads.append(threading.Thread(target=create_thread_executor, args=(o.threadsafe_crashing_method,)))
-    # threads.append(threading.Thread(target=create_thread_executor, args=(o.threadsafe_method, 1,)))
+    threads.append(threading.Thread(target=create_thread_executor, args=(o.threadsafe_method, 1,)))
     threads.append(threading.Thread(target=create_thread_executor, args=(o.threadunsafe_method,)))
     
     for t in threads:
