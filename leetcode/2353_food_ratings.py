@@ -1,4 +1,4 @@
-import heapq
+from sortedcontainers import SortedList
 
 class FoodRatings(object):
     # O(NlogN) 
@@ -14,6 +14,8 @@ class FoodRatings(object):
         self.cuisine_foods = {}
         # We maintain another map mapping food to cuisine.
         self.food_to_cuisine = {}
+        # And one from food to rating.
+        self.food_to_rating = {}
 
         n = len(foods)
         # O(nlogn)        
@@ -23,60 +25,38 @@ class FoodRatings(object):
             r = ratings[i]
 
             if c not in self.cuisine_foods:
-                self.cuisine_foods[c] = []
+                self.cuisine_foods[c] = SortedList()
 
-            h = self.cuisine_foods[c]
-            heapq.heappush(h, (-r, f))
-
+            self.cuisine_foods[c].add((-r, f))
             self.food_to_cuisine[f] = c
+            self.food_to_rating[f] = r
 
-        # for c in self.cuisine_foods:
-        #     h = self.cuisine_foods[c]
-        #     print(c)
-        #     print([x for x in h])
-
-        # print("Initialised")
-
-    # O(N)
+    # O(logN)
     def changeRating(self, food, newRating):
         """
         :type food: str
         :type newRating: int
         :rtype: None
         """
-        # This one is tricky. I think the best thing to do is to
-        # find the cuisine having this food. Then get that cuisine's
-        # heap list, replace this particular item and heapify and
-        # re-insert into the map.
+        # We will simply remove the previous tuple for that food, 
+        # and add the new one back.
         c = self.food_to_cuisine[food]
+        old_rating = self.food_to_rating[food]
 
-        h = self.cuisine_foods[c]
-        n = len(h)
-        # O(n)
-        for i in range(n):
-            t = h[i]
-            if t[1] == food:
-                t_l = list(t)
-                t_l[0] = -newRating
-                h[i] = tuple(t_l)
-                break
-        
-        # O(N)
-        heapq.heapify(h)
-        self.cuisine_foods[c] = h
-        # print([x for x in h])
+        self.cuisine_foods[c].remove((-old_rating, food))
+        self.cuisine_foods[c].add((-newRating, food))
+        self.food_to_rating[food] = newRating
 
-    # O(1)
+    # O(logN)
     def highestRated(self, cuisine):
         """
         :type cuisine: str
         :rtype: str
         """
         # Simple. Just access the 0th element of cuisine.
-        h =  self.cuisine_foods[cuisine]
+        sl =  self.cuisine_foods[cuisine]
 
-        return h[0][1]
-        
+        return sl[0][1]
 
 if __name__ == "__main__":
     # Your FoodRatings object will be instantiated and called as such:
